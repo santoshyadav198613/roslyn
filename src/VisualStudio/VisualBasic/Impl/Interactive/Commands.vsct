@@ -14,17 +14,15 @@
     </Groups>
 
     <Buttons>
+      <!-- https://github.com/dotnet/roslyn/issues/13523
       <Button guid="guidVisualBasicInteractiveCommandSet" id="cmdidVisualBasicInteractiveToolWindow" priority="0x8001" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
-        <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): RoslynImageCatalogGuid -> ImageCatalogGuid -->
         <Icon guid="RoslynImageCatalogGuid" id="VBInteractiveWindow" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Visual Basic Interactive</ButtonText>
         </Strings>
       </Button>
-
-      <!-- https://github.com/dotnet/roslyn/issues/4688
       <Button guid="guidVisualBasicInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
         <Parent guid="guidVisualBasicInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
