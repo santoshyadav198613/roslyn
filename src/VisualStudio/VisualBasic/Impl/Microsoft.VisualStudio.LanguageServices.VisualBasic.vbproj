@@ -95,10 +95,5 @@
       <DependentUpon>IntelliSenseOptionPageControl.xaml</DependentUpon>
     </Compile>
     <Content Include="VisualBasicPackageRegistration.pkgdef" />
-    <Content Include="Interactive\Resources\ScriptFile.ico" />
-    <VSCTCompile Include="Interactive\Commands.vsct">
-      <ResourceName>Menus.ctmenu</ResourceName>
-      <SubType>Designer</SubType>
-    </VSCTCompile>
   </ItemGroup>
 </Project>
