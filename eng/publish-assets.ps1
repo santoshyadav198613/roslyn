@@ -142,10 +142,22 @@ try {
     }
 
     if ($branchName -ne "") {
-        Publish-Entry (GetBranchPublishData $branchName) -isBranch:$true
+        $data = GetBranchPublishData $branchName
+        if ($data -eq $null) {
+            Write-Host "Branch $branchName not listed for publishing."
+            exit 0
+        }
+
+        Publish-Entry $data -isBranch:$true
     }
     elseif ($releaseName -ne "") {
-        Publish-Entry (GetReleasePublishData $releaseName) -isBranch:$false
+        $data = GetReleasePublishData $releaseName
+        if ($data -eq $null) {
+            Write-Host "Release $releaseName not listed for publishing."
+            exit 1
+        }
+
+        Publish-Entry $data -isBranch:$false
     }
     else {
         Write-Host "Need to specify -branchName or -releaseName"

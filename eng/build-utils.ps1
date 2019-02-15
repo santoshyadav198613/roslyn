@@ -28,7 +28,7 @@ function GetPublishData() {
     return $global:_PublishData
   }
 
-  Write-Host "Downloading PublishData.json"
+  Write-Host "Downloading $PublishDataUrl"
   $content = (Invoke-WebRequest -Uri $PublishDataUrl -UseBasicParsing).Content
 
   return $global:_PublishData = ConvertFrom-Json $content
@@ -39,10 +39,9 @@ function GetBranchPublishData([string]$branchName) {
 
   if (Get-Member -InputObject $data.branches -Name $branchName) {
     return $data.branches.$branchName
+  } else {
+    return $null
   }
-
-  Write-Host "branch '$branchName' is not listed in $PublishDataUrl"
-  ExitWithExitCode 1
 }
 
 function GetReleasePublishData([string]$releaseName) {
@@ -50,10 +49,9 @@ function GetReleasePublishData([string]$releaseName) {
 
   if (Get-Member -InputObject $data.releases -Name $releaseName) {
     return $data.releases.$releaseName
+  } else {
+    return $null
   }
-
-  Write-Host "Release '$releaseName' is not listed in $PublishDataUrl"
-  ExitWithExitCode 1
 }
 
 # Handy function for executing a command in powershell and throwing if it 

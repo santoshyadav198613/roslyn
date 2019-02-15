@@ -244,31 +244,46 @@ function BuildSolution() {
         @properties
 }
 
+
 # Get the branch that produced the IBC data this build is going to consume.
 # IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.
-function GetIbcSourceBranchName() {    
-   if (!$ci) {
-       return ""
-   }
-   
-   if ($officialIbcSourceBranchName -ne "default") {
-       return $officialIbcSourceBranchName
-   }
-   
-   $branchName = if ($officialBuildId) { $officialSourceBranchName } else { "master-vs-deps" }
-   $branchData = GetBranchPublishData $branchName
-   if (Test-Member $branchData "ibcSourceBranch") {
-       $branchData.ibcSourceBranch 
-   } 
-   
-   return $branchName
+function GetIbcSourceBranchName() {
+    if (Test-Path variable:global:_IbcSourceBranchName) {
+      return $global:_IbcSourceBranchName
+    }
+
+    function calculate {   
+        $fallback = "master-vs-deps"      
+      
+        if ($officialIbcSourceBranchName -ne "default") {
+            return $officialIbcSourceBranchName
+        }
+      
+        if (!$officialBuildId) {
+            return $fallback
+        }
+      
+        $branchData = GetBranchPublishData $officialSourceBranchName
+        if ($branchData -eq $null) {
+            Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'.  " + `
+                       "Override by setting IbcSourceBranchName build variable." -ForegroundColor Yellow
+            return $fallback
+        }
+      
+        if (Test-Member $branchData "ibcSourceBranch") {
+            return $branchData.ibcSourceBranch 
+        }
+      
+        return $officialSourceBranchName
+    }
+
+    return $global:_IbcSourceBranchName = calculate
 }
 
 # Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
 function SetVisualStudioBootstrapperBuildArgs() {
-    $branchName = if ($officialBuildId) { $officialSourceBranchName } else { "master-vs-deps" }
-    $branchData = GetBranchPublishData $branchName
-
+    $branchData = GetBranchPublishData (GetIbcSourceBranchName)
+    
     # VS branch name is e.g. "lab/d16.0stg", "rel/d15.9", "lab/ml", etc.
     $vsBranchSimpleName = $branchData.vsBranch.Split('/')[-1]
     $vsMajorVersion = $branchData.vsMajorVersion
