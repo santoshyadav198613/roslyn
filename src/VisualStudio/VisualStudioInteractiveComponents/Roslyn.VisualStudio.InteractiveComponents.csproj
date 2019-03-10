@@ -7,6 +7,7 @@
 
     We still generate a VSIX to override previously installed versions.
     Once we move to newer VS drop that doesn't have this VSIX installed we can disable generating VSIX container for this project.
+    https://github.com/dotnet/roslyn/issues/34002
   -->
   <PropertyGroup>
     <OutputType>Library</OutputType>
