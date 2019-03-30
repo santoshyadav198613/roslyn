@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
 
         public async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(CodeLensDescriptor descriptor, CancellationToken cancellationToken)
         {
-            var dataPoint = new DataPoint(descriptor, await GetConnectionAsync(cancellationToken).ConfigureAwait(false), _lazyCodeLensCallbackService.Value);
+            var dataPoint = new DataPoint(this, descriptor, await GetConnectionAsync(cancellationToken).ConfigureAwait(false), _lazyCodeLensCallbackService.Value);
             await dataPoint.TrackChangesAsync(cancellationToken).ConfigureAwait(false);
 
             return dataPoint;
@@ -93,11 +93,13 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
 
         private class DataPoint : IAsyncCodeLensDataPoint, IDisposable
         {
+            private readonly ReferenceCodeLensProvider _owner;
             private readonly JsonRpc _roslynRpc;
             private readonly ICodeLensCallbackService _callbackService;
 
-            public DataPoint(CodeLensDescriptor descriptor, Stream stream, ICodeLensCallbackService callbackService)
+            public DataPoint(ReferenceCodeLensProvider owner, CodeLensDescriptor descriptor, Stream stream, ICodeLensCallbackService callbackService)
             {
+                _owner = owner;
                 this.Descriptor = descriptor;
 
                 _roslynRpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: new RoslynCallbackTarget(Invalidate));
@@ -117,7 +119,7 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
                 // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
                 // raw data from Roslyn OOP such as razor find all reference results
                 var referenceCount = await _callbackService.InvokeAsync<ReferenceCount>(
-                    this, nameof(ICodeLensContext.GetReferenceCountAsync), new object[] { this.Descriptor }, cancellationToken).ConfigureAwait(false);
+                    _owner, nameof(ICodeLensContext.GetReferenceCountAsync), new object[] { this.Descriptor }, cancellationToken).ConfigureAwait(false);
 
                 if (referenceCount == null)
                 {
@@ -159,7 +161,7 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
                 // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
                 // raw data from Roslyn OOP such as razor find all reference results
                 var referenceLocationDescriptors = await _callbackService.InvokeAsync<IEnumerable<ReferenceLocationDescriptor>>(
-                    this, nameof(ICodeLensContext.FindReferenceLocationsAsync), new object[] { this.Descriptor }, cancellationToken).ConfigureAwait(false);
+                    _owner, nameof(ICodeLensContext.FindReferenceLocationsAsync), new object[] { this.Descriptor }, cancellationToken).ConfigureAwait(false);
 
                 var details = new CodeLensDetailsDescriptor
                 {
@@ -242,7 +244,7 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
                 async Task<DocumentId> GetDocumentIdAsync()
                 {
                     var guids = await _callbackService.InvokeAsync<List<Guid>>(
-                        this, nameof(ICodeLensContext.GetDocumentId), new object[] { this.Descriptor.ProjectGuid, this.Descriptor.FilePath }, cancellationToken).ConfigureAwait(false);
+                        _owner, nameof(ICodeLensContext.GetDocumentId), new object[] { this.Descriptor.ProjectGuid, this.Descriptor.FilePath }, cancellationToken).ConfigureAwait(false);
                     if (guids == null)
                     {
                         return null;
